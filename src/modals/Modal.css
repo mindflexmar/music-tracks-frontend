@@ -1,0 +1,28 @@
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    max-width: 500px;
+    width: 100%;
+    position: relative;
+  }
+  
+  .modal-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
