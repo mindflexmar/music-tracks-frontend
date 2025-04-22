@@ -9,6 +9,7 @@ import {
   updateTrack,
   uploadTrackFile,
   deleteTrackFile,
+  deleteTrack,
 } from "../api/tracks";
 
 const TracksPage: React.FC = () => {
@@ -89,6 +90,17 @@ const TracksPage: React.FC = () => {
     }
   };
 
+  const handleDeleteTrack = async (trackId: string) => {
+    if (!confirm("Are you sure you want to delete this track?")) return;
+
+    try {
+      await deleteTrack(trackId);
+      setTracks((prev) => prev.filter((track) => track.id !== trackId));
+    } catch (err: any) {
+      alert(err.message || "The track could not be deleted.");
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
@@ -122,7 +134,12 @@ const TracksPage: React.FC = () => {
               </div>
             )}
 
-            <Button onClick={() => handleOpenEditModal(track)}>Edit</Button>
+            <div className="flex gap-2">
+              <Button onClick={() => handleOpenEditModal(track)}>Edit</Button>
+              <Button variant="destructive" onClick={() => handleDeleteTrack(track.id)}>
+                🗑 Delete track
+              </Button>
+            </div>
           </li>
         ))}
       </ul>

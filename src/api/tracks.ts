@@ -48,3 +48,20 @@ export async function getGenres(): Promise<string[]> {
   const data = await res.json();
   return data;
 }
+
+export async function deleteTrack(trackId: string): Promise<void> {
+  try {
+    const res = await fetch(`${API_URL}/api/tracks/${trackId}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || "Failed to delete the track.");
+    }
+  } catch (err) {
+    console.error("Error deleting track:", err);
+    throw err;
+  }
+}
+
