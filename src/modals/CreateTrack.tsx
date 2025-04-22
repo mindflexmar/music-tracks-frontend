@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Modal from "./Modal";
 import { Track, Genre } from "../types";
+import { createTrack, getGenres } from "../api/tracks";
 
 interface CreateTrackModalProps {
   isOpen: boolean;
@@ -23,9 +24,8 @@ const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      fetch("http://localhost:8000/api/genres")
-        .then((res) => res.json())
-        .then((names: string[]) => setGenres(names.map((name) => ({ name }))))
+      getGenres()
+        .then((names: string[]) => setGenres(names.map((name: string) => ({ name }))))
         .catch(() => setGenres([]));
     }
   }, [isOpen]);
@@ -47,23 +47,14 @@ const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/tracks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          artist,
-          album,
-          coverUrl,
-          genres: selectedGenres.map((g) => g.name),
-        }),
+      const newTrack = await createTrack({
+        title,
+        artist,
+        album,
+        coverUrl,
+        genres: selectedGenres.map((g) => g.name),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to create track.");
-      }
-
-      const newTrack = await res.json();
       onCreated(newTrack);
       onClose();
 
@@ -131,7 +122,7 @@ const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
 
           <details className="mb-2">
             <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 mb-1">
-              + Додати жанр
+            + Add genre
             </summary>
             <div className="mt-1 flex flex-wrap gap-2">
               {genres

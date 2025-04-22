@@ -3,17 +3,24 @@ import { Track } from "../types";
 import CreateTrackModal from "../modals/CreateTrack";
 import EditTrackModal from "../modals/EditTrack";
 import { Button } from "../components/ui/button";
+import {
+  getTracks,
+  createTrack,
+  updateTrack,
+  uploadTrackFile,
+  deleteTrackFile,
+} from "../api/tracks";
 
 const TracksPage: React.FC = () => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<Record<string, File | null>>({});
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/tracks")
-      .then((res) => res.json())
-      .then((data) => setTracks(data.data))
+    getTracks()
+      .then((data) => setTracks(data))
       .catch((error) => {
         console.error("Failed to fetch tracks:", error);
       });
@@ -44,6 +51,44 @@ const TracksPage: React.FC = () => {
     handleCloseEditModal();
   };
 
+  const handleFileChange = (trackId: string, file: File | null) => {
+    setUploadFiles((prev) => ({ ...prev, [trackId]: file }));
+  };
+
+  const handleUpload = async (trackId: string) => {
+    const file = uploadFiles[trackId];
+    if (!file) return alert("Select file before uploading");
+
+    if (!["audio/mpeg", "audio/wav"].includes(file.type)) {
+      return alert("Only MP3 or WAV files are supported.");
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      return alert("The file is too large (maximum 10 MB).");
+    }
+
+    try {
+      const updatedTrack = await uploadTrackFile(trackId, file);
+      setTracks((prev) =>
+        prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track))
+      );
+      setUploadFiles((prev) => ({ ...prev, [trackId]: null }));
+    } catch (err: any) {
+      alert(err.message || "The file could not be downloaded.");
+    }
+  };
+
+  const handleDeleteFile = async (trackId: string) => {
+    try {
+      const updatedTrack = await deleteTrackFile(trackId);
+      setTracks((prev) =>
+        prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track))
+      );
+    } catch (err: any) {
+      alert(err.message || "The file could not be deleted.");
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
@@ -51,14 +96,33 @@ const TracksPage: React.FC = () => {
         <Button onClick={handleOpenCreateModal}>Create a track</Button>
       </div>
 
-      <ul className="space-y-2">
+      <ul className="space-y-4">
         {tracks.map((track) => (
-          <li key={track.id} className="p-4 rounded shadow bg-white">
+          <li key={track.id} className="p-4 rounded shadow bg-white space-y-2">
             <div className="font-semibold">{track.title}</div>
             <div className="text-sm text-gray-600">{track.artist}</div>
-            <Button onClick={() => handleOpenEditModal(track)} className="mt-2">
-              Edit
-            </Button>
+
+            {track.audioFile ? (
+              <div className="space-y-2">
+                <audio controls src={`${import.meta.env.VITE_API_URL}/${track.audioFile}`} className="w-full" />
+                <Button variant="destructive" onClick={() => handleDeleteFile(track.id)}>
+                  🗑 Delete the file
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept=".mp3,.wav"
+                  onChange={(e) =>
+                    handleFileChange(track.id, e.target.files ? e.target.files[0] : null)
+                  }
+                />
+                <Button onClick={() => handleUpload(track.id)}>Download the file</Button>
+              </div>
+            )}
+
+            <Button onClick={() => handleOpenEditModal(track)}>Edit</Button>
           </li>
         ))}
       </ul>

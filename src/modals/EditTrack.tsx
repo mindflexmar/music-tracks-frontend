@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../modals/Modal";
 import { Track, Genre } from "../types";
+import { getGenres } from "../api/tracks"; // импорт
 
 interface EditTrackModalProps {
   isOpen: boolean;
@@ -29,11 +30,10 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
       setArtist(track.artist);
       setAlbum(track.album || "");
       setCoverUrl(track.coverUrl || "");
-      setSelectedGenres(track.genres.map((name) => ({ name })));
+      setSelectedGenres(track.genres.map((name: string) => ({ name })));
 
-      fetch("http://localhost:8000/api/genres")
-        .then((res) => res.json())
-        .then((names: string[]) => setGenres(names.map((name) => ({ name }))))
+      getGenres()
+        .then((names: string[]) => setGenres(names.map((name: string) => ({ name }))))
         .catch(() => setGenres([]));
     }
   }, [isOpen, track]);
@@ -79,7 +79,7 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4">Редагувати трек</h2>
+      <h2 className="text-xl font-bold mb-4">Edit track</h2>
 
       {error && <p className="text-red-600 mb-2">{error}</p>}
 
@@ -129,7 +129,7 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
 
           <details className="mb-2">
             <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 mb-1">
-              + Додати жанр
+            + Add genre
             </summary>
             <div className="mt-1 flex flex-wrap gap-2">
               {genres
