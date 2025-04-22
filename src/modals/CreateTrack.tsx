@@ -1,34 +1,28 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Modal from "./Modal";
 import { Track, Genre } from "../types";
 import { createTrack, getGenres } from "../api/tracks";
 
 interface CreateTrackModalProps {
-  isOpen: boolean;
   onClose: () => void;
   onCreated: (newTrack: Track) => void;
 }
 
-const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
-  isOpen,
-  onClose,
-  onCreated,
-}) => {
-  const [title, setTitle] = useState("");
-  const [artist, setArtist] = useState("");
-  const [album, setAlbum] = useState("");
-  const [coverUrl, setCoverUrl] = useState("");
+const CreateTrackModal: React.FC<CreateTrackModalProps> = ({ onClose, onCreated }) => {
+  const titleRef = useRef<HTMLInputElement>(null);
+  const artistRef = useRef<HTMLInputElement>(null);
+  const albumRef = useRef<HTMLInputElement>(null);
+  const coverUrlRef = useRef<HTMLInputElement>(null);
+
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (isOpen) {
-      getGenres()
-        .then((names: string[]) => setGenres(names.map((name: string) => ({ name }))))
-        .catch(() => setGenres([]));
-    }
-  }, [isOpen]);
+    getGenres()
+      .then((names: string[]) => setGenres(names.map((name) => ({ name }))))
+      .catch(() => setGenres([]));
+  }, []);
 
   const handleAddGenre = (genre: Genre) => {
     if (!selectedGenres.find((g) => g.name === genre.name)) {
@@ -41,6 +35,11 @@ const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
   };
 
   const handleCreate = async () => {
+    const title = titleRef.current?.value || "";
+    const artist = artistRef.current?.value || "";
+    const album = albumRef.current?.value || "";
+    const coverUrl = coverUrlRef.current?.value || "";
+
     if (!title.trim() || !artist.trim()) {
       setError("Title and artist are required fields.");
       return;
@@ -57,50 +56,22 @@ const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
 
       onCreated(newTrack);
       onClose();
-
-      // Reset state
-      setTitle("");
-      setArtist("");
-      setAlbum("");
-      setCoverUrl("");
-      setSelectedGenres([]);
-      setError("");
     } catch (err: any) {
       setError(err.message || "An error occurred. Please try again.");
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4">Створити трек</h2>
+    <Modal onClose={onClose}>
+      <h2 className="text-xl font-bold mb-4">Create Track</h2>
 
       {error && <p className="text-red-600 mb-2">{error}</p>}
 
       <div className="space-y-3">
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Track name"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Artist"
-          value={artist}
-          onChange={(e) => setArtist(e.target.value)}
-        />
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Album"
-          value={album}
-          onChange={(e) => setAlbum(e.target.value)}
-        />
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="Cover link (URL)"
-          value={coverUrl}
-          onChange={(e) => setCoverUrl(e.target.value)}
-        />
+        <input ref={titleRef} className="w-full border p-2 rounded" placeholder="Track name" />
+        <input ref={artistRef} className="w-full border p-2 rounded" placeholder="Artist" />
+        <input ref={albumRef} className="w-full border p-2 rounded" placeholder="Album" />
+        <input ref={coverUrlRef} className="w-full border p-2 rounded" placeholder="Cover link (URL)" />
 
         <div>
           <div className="flex flex-wrap gap-2 mb-2">
@@ -122,7 +93,7 @@ const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
 
           <details className="mb-2">
             <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 mb-1">
-            + Add genre
+              + Add genre
             </summary>
             <div className="mt-1 flex flex-wrap gap-2">
               {genres

@@ -144,15 +144,16 @@ const TracksPage: React.FC = () => {
         ))}
       </ul>
 
-      <CreateTrackModal
-        isOpen={isCreateModalOpen}
-        onClose={handleCloseCreateModal}
-        onCreated={handleCreated}
-      />
 
-      {currentTrack && (
+      {isCreateModalOpen && (
+        <CreateTrackModal
+          onClose={handleCloseCreateModal}
+          onCreated={handleCreated}
+        />
+      )}
+
+      {currentTrack && isEditModalOpen && (
         <EditTrackModal
-          isOpen={isEditModalOpen}
           onClose={handleCloseEditModal}
           track={currentTrack}
           onUpdated={handleUpdated}
