@@ -1,42 +1,34 @@
 import React, { useEffect, useState } from "react";
-import Modal from "../modals/Modal";
+import Modal from "./Modal";
 import { Track, Genre } from "../types";
 
-interface EditTrackModalProps {
+interface CreateTrackModalProps {
   isOpen: boolean;
   onClose: () => void;
-  track: Track;
-  onUpdated: (updatedTrack: Track) => void;
+  onCreated: (newTrack: Track) => void;
 }
 
-const EditTrackModal: React.FC<EditTrackModalProps> = ({
+const CreateTrackModal: React.FC<CreateTrackModalProps> = ({
   isOpen,
   onClose,
-  track,
-  onUpdated,
+  onCreated,
 }) => {
-  const [title, setTitle] = useState(track.title);
-  const [artist, setArtist] = useState(track.artist);
-  const [album, setAlbum] = useState(track.album || "");
-  const [coverUrl, setCoverUrl] = useState(track.coverUrl || "");
+  const [title, setTitle] = useState("");
+  const [artist, setArtist] = useState("");
+  const [album, setAlbum] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
-      setTitle(track.title);
-      setArtist(track.artist);
-      setAlbum(track.album || "");
-      setCoverUrl(track.coverUrl || "");
-      setSelectedGenres(track.genres.map((name) => ({ name })));
-
       fetch("http://localhost:8000/api/genres")
         .then((res) => res.json())
         .then((names: string[]) => setGenres(names.map((name) => ({ name }))))
         .catch(() => setGenres([]));
     }
-  }, [isOpen, track]);
+  }, [isOpen]);
 
   const handleAddGenre = (genre: Genre) => {
     if (!selectedGenres.find((g) => g.name === genre.name)) {
@@ -48,15 +40,15 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
     setSelectedGenres(selectedGenres.filter((g) => g.name !== genre.name));
   };
 
-  const handleUpdate = async () => {
+  const handleCreate = async () => {
     if (!title.trim() || !artist.trim()) {
       setError("Title and artist are required fields.");
       return;
     }
 
     try {
-      const res = await fetch(`http://localhost:8000/api/tracks/${track.id}`, {
-        method: "PUT",
+      const res = await fetch("http://localhost:8000/api/tracks", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
@@ -67,11 +59,21 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to update track.");
+      if (!res.ok) {
+        throw new Error("Failed to create track.");
+      }
 
-      const updatedTrack = await res.json();
-      onUpdated(updatedTrack);
+      const newTrack = await res.json();
+      onCreated(newTrack);
       onClose();
+
+      // Reset state
+      setTitle("");
+      setArtist("");
+      setAlbum("");
+      setCoverUrl("");
+      setSelectedGenres([]);
+      setError("");
     } catch (err: any) {
       setError(err.message || "An error occurred. Please try again.");
     }
@@ -79,7 +81,7 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4">Редагувати трек</h2>
+      <h2 className="text-xl font-bold mb-4">Створити трек</h2>
 
       {error && <p className="text-red-600 mb-2">{error}</p>}
 
@@ -148,14 +150,14 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
         </div>
 
         <button
-          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-          onClick={handleUpdate}
+          className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
+          onClick={handleCreate}
         >
-          Update
+          Create
         </button>
       </div>
     </Modal>
   );
 };
 
-export default EditTrackModal;
+export default CreateTrackModal;
