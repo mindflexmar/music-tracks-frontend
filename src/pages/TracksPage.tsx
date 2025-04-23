@@ -12,6 +12,7 @@ import {
 import debounce from "lodash.debounce";
 
 const ITEMS_PER_PAGE = 5;
+const DEBOUNCE_DELAY = 300;
 
 const TracksPage: React.FC = () => {
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -29,9 +30,9 @@ const TracksPage: React.FC = () => {
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
   const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
 
-  const debouncedSearchArtist = useMemo(() => debounce((value: string) => setSearchArtist(value), 300), []);
-  const debouncedSearchTrack = useMemo(() => debounce((value: string) => setSearchTrack(value), 300), []);
-  const debouncedSearchAlbum = useMemo(() => debounce((value: string) => setSearchAlbum(value), 300), []);
+  const debouncedSearchArtist = useMemo(() => debounce((value: string) => setSearchArtist(value), DEBOUNCE_DELAY), []);
+  const debouncedSearchTrack = useMemo(() => debounce((value: string) => setSearchTrack(value), DEBOUNCE_DELAY), []);
+  const debouncedSearchAlbum = useMemo(() => debounce((value: string) => setSearchAlbum(value), DEBOUNCE_DELAY), []);
 
   useEffect(() => {
     getTracks()
