@@ -26,8 +26,8 @@ const TracksPage: React.FC = () => {
   const [searchTrack, setSearchTrack] = useState("");
   const [searchAlbum, setSearchAlbum] = useState("");
   const [selectedArtist, setSelectedArtist] = useState("");
-
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
+  const [selectedTrackIds, setSelectedTrackIds] = useState<string[]>([]);
   const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
 
   const debouncedSearchArtist = useMemo(() => debounce((value: string) => setSearchArtist(value), DEBOUNCE_DELAY), []);
@@ -37,9 +37,7 @@ const TracksPage: React.FC = () => {
   useEffect(() => {
     getTracks()
       .then((data) => setTracks(data))
-      .catch((error) => {
-        console.error("Failed to fetch tracks:", error);
-      });
+      .catch((error) => console.error("Failed to fetch tracks:", error));
 
     return () => {
       debouncedSearchArtist.cancel();
@@ -72,9 +70,7 @@ const TracksPage: React.FC = () => {
 
     try {
       const updatedTrack = await uploadTrackFile(trackId, file);
-      setTracks((prev) =>
-        prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track))
-      );
+      setTracks((prev) => prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track)));
       setUploadFiles((prev) => ({ ...prev, [trackId]: null }));
     } catch (err: any) {
       alert(err.message || "The file could not be uploaded.");
@@ -84,9 +80,7 @@ const TracksPage: React.FC = () => {
   const handleDeleteFile = async (trackId: string) => {
     try {
       const updatedTrack = await deleteTrackFile(trackId);
-      setTracks((prev) =>
-        prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track))
-      );
+      setTracks((prev) => prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track)));
     } catch (err: any) {
       alert(err.message || "The file could not be deleted.");
     }
@@ -99,6 +93,36 @@ const TracksPage: React.FC = () => {
       setTracks((prev) => prev.filter((track) => track.id !== trackId));
     } catch (err: any) {
       alert(err.message || "The track could not be deleted.");
+    }
+  };
+
+  const toggleTrackSelection = (id: string) => {
+    setSelectedTrackIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
+    );
+  };
+
+  const selectAllTracks = () => {
+    const allIds = paginatedTracks.map((t) => t.id);
+    setSelectedTrackIds(allIds);
+  };
+
+  const clearSelection = () => {
+    setSelectedTrackIds([]);
+  };
+
+  const deleteSelectedTracks = async () => {
+    if (!confirm(`Are you sure you want to delete ${selectedTrackIds.length} track(s)?`)) return;
+
+    const toDelete = [...selectedTrackIds];
+    setTracks((prev) => prev.filter((t) => !toDelete.includes(t.id)));
+    setSelectedTrackIds([]);
+
+    try {
+      await Promise.all(toDelete.map((id) => deleteTrack(id)));
+    } catch (e: any) {
+      alert("Some tracks couldn't be deleted");
+      console.error(e);
     }
   };
 
@@ -116,16 +140,9 @@ const TracksPage: React.FC = () => {
   const filteredTracks = useMemo(() => {
     return tracks.filter((track) => {
       const matchesGenre = selectedGenre ? track.genres?.includes(selectedGenre) : true;
-      const matchesArtist = searchArtist
-        ? track.artist.toLowerCase().includes(searchArtist.toLowerCase())
-        : true;
-      const matchesTrack = searchTrack
-        ? track.title.toLowerCase().includes(searchTrack.toLowerCase())
-        : true;
-      const matchesAlbum = searchAlbum
-        ? (track.album && track.album.toLowerCase().includes(searchAlbum.toLowerCase())) || false
-        : true;
-      
+      const matchesArtist = searchArtist ? track.artist.toLowerCase().includes(searchArtist.toLowerCase()) : true;
+      const matchesTrack = searchTrack ? track.title.toLowerCase().includes(searchTrack.toLowerCase()) : true;
+      const matchesAlbum = searchAlbum ? (track.album && track.album.toLowerCase().includes(searchAlbum.toLowerCase())) || false : true;
       return matchesGenre && matchesArtist && matchesTrack && matchesAlbum;
     });
   }, [tracks, selectedGenre, searchArtist, searchTrack, searchAlbum]);
@@ -144,14 +161,30 @@ const TracksPage: React.FC = () => {
         <Button onClick={() => setCreateModalOpen(true)}>Create a track</Button>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 items-center">
+        <input
+          type="checkbox"
+          checked={paginatedTracks.every((t) => selectedTrackIds.includes(t.id))}
+          onChange={() =>
+            paginatedTracks.every((t) => selectedTrackIds.includes(t.id))
+              ? clearSelection()
+              : selectAllTracks()
+          }
+        />
+        <span>Select all on this page</span>
+        {selectedTrackIds.length > 0 && (
+          <Button variant="destructive" onClick={deleteSelectedTracks}>
+            Delete selected ({selectedTrackIds.length})
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
         <input
           type="text"
           placeholder="Filter by artist"
           defaultValue={searchArtist}
-          onChange={(e) => {
-            handleSearchChange(e.target.value);
-          }}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="border p-2 rounded"
         />
         <input
@@ -191,7 +224,7 @@ const TracksPage: React.FC = () => {
               <div className="space-y-2">
                 <audio
                   controls
-                  ref={(el: HTMLAudioElement | null) => {
+                  ref={(el) => {
                     audioRefs.current[track.id] = el;
                   }}
                   onPlay={() => handlePlay(track.id)}
