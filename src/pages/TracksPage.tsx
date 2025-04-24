@@ -22,17 +22,16 @@ const TracksPage: React.FC = () => {
   const [uploadFiles, setUploadFiles] = useState<Record<string, File | null>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedGenre, setSelectedGenre] = useState("");
-  const [searchArtist, setSearchArtist] = useState("");
-  const [searchTrack, setSearchTrack] = useState("");
-  const [searchAlbum, setSearchAlbum] = useState("");
-  const [selectedArtist, setSelectedArtist] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
   const [selectedTrackIds, setSelectedTrackIds] = useState<string[]>([]);
   const audioRefs = useRef<Record<string, HTMLAudioElement | null>>({});
 
-  const debouncedSearchArtist = useMemo(() => debounce((value: string) => setSearchArtist(value), DEBOUNCE_DELAY), []);
-  const debouncedSearchTrack = useMemo(() => debounce((value: string) => setSearchTrack(value), DEBOUNCE_DELAY), []);
-  const debouncedSearchAlbum = useMemo(() => debounce((value: string) => setSearchAlbum(value), DEBOUNCE_DELAY), []);
+  const debouncedSearch = useMemo(
+    () => debounce((value: string) => setDebouncedSearchQuery(value), DEBOUNCE_DELAY),
+    []
+  );
 
   useEffect(() => {
     getTracks()
@@ -40,15 +39,13 @@ const TracksPage: React.FC = () => {
       .catch((error) => console.error("Failed to fetch tracks:", error));
 
     return () => {
-      debouncedSearchArtist.cancel();
-      debouncedSearchTrack.cancel();
-      debouncedSearchAlbum.cancel();
+      debouncedSearch.cancel();
     };
-  }, [debouncedSearchArtist, debouncedSearchTrack, debouncedSearchAlbum]);
+  }, [debouncedSearch]);
 
   const handleSearchChange = (value: string) => {
-    debouncedSearchArtist(value);
-    setSelectedArtist(value);
+    setSearchQuery(value);
+    debouncedSearch(value);
     setCurrentPage(1);
   };
 
@@ -68,19 +65,39 @@ const TracksPage: React.FC = () => {
       return alert("The file is too large (maximum 10 MB).");
     }
 
+    const previousTrack = tracks.find((t) => t.id === trackId);
+    if (!previousTrack) return;
+
     try {
+      setTracks((prev) =>
+        prev.map((track) =>
+          track.id === trackId ? { ...track, audioFile: "uploading" } : track
+        )
+      );
+
       const updatedTrack = await uploadTrackFile(trackId, file);
-      setTracks((prev) => prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track)));
+
+      setTracks((prev) =>
+        prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track))
+      );
+
       setUploadFiles((prev) => ({ ...prev, [trackId]: null }));
     } catch (err: any) {
       alert(err.message || "The file could not be uploaded.");
+      setTracks((prev) =>
+        prev.map((track) =>
+          track.id === previousTrack.id ? previousTrack : track
+        )
+      );
     }
   };
 
   const handleDeleteFile = async (trackId: string) => {
     try {
       const updatedTrack = await deleteTrackFile(trackId);
-      setTracks((prev) => prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track)));
+      setTracks((prev) =>
+        prev.map((track) => (track.id === updatedTrack.id ? updatedTrack : track))
+      );
     } catch (err: any) {
       alert(err.message || "The file could not be deleted.");
     }
@@ -88,11 +105,15 @@ const TracksPage: React.FC = () => {
 
   const handleDeleteTrack = async (trackId: string) => {
     if (!confirm("Are you sure you want to delete this track?")) return;
+
+    const previousTracks = [...tracks];
+    setTracks((prev) => prev.filter((track) => track.id !== trackId));
+
     try {
       await deleteTrack(trackId);
-      setTracks((prev) => prev.filter((track) => track.id !== trackId));
     } catch (err: any) {
       alert(err.message || "The track could not be deleted.");
+      setTracks(previousTracks);
     }
   };
 
@@ -139,13 +160,16 @@ const TracksPage: React.FC = () => {
 
   const filteredTracks = useMemo(() => {
     return tracks.filter((track) => {
-      const matchesGenre = selectedGenre ? track.genres?.includes(selectedGenre) : true;
-      const matchesArtist = searchArtist ? track.artist.toLowerCase().includes(searchArtist.toLowerCase()) : true;
-      const matchesTrack = searchTrack ? track.title.toLowerCase().includes(searchTrack.toLowerCase()) : true;
-      const matchesAlbum = searchAlbum ? (track.album && track.album.toLowerCase().includes(searchAlbum.toLowerCase())) || false : true;
-      return matchesGenre && matchesArtist && matchesTrack && matchesAlbum;
+      const query = debouncedSearchQuery.toLowerCase();
+      const matchesQuery =
+        !query ||
+        track.artist.toLowerCase().includes(query) ||
+        track.title.toLowerCase().includes(query) ||
+        (track.album && track.album.toLowerCase().includes(query));
+      const matchesGenre = !selectedGenre || (track.genres || []).includes(selectedGenre);
+      return matchesQuery && matchesGenre;
     });
-  }, [tracks, selectedGenre, searchArtist, searchTrack, searchAlbum]);
+  }, [tracks, selectedGenre, debouncedSearchQuery]);
 
   const paginatedTracks = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -157,8 +181,8 @@ const TracksPage: React.FC = () => {
   return (
     <div className="p-6 space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Tracks</h1>
-        <Button onClick={() => setCreateModalOpen(true)}>Create a track</Button>
+        <h1 data-testid="tracks-header" className="text-2xl font-bold">Tracks</h1>
+        <Button data-testid="create-track-button" onClick={() => setCreateModalOpen(true)}>Create a track</Button>
       </div>
 
       <div className="flex gap-4 items-center">
@@ -182,23 +206,9 @@ const TracksPage: React.FC = () => {
       <div className="flex flex-col gap-2">
         <input
           type="text"
-          placeholder="Filter by artist"
-          defaultValue={searchArtist}
+          placeholder="Search by artist, track or album"
+          value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="border p-2 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Filter by track name"
-          defaultValue={searchTrack}
-          onChange={(e) => debouncedSearchTrack(e.target.value)}
-          className="border p-2 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Filter by album name"
-          defaultValue={searchAlbum}
-          onChange={(e) => debouncedSearchAlbum(e.target.value)}
           className="border p-2 rounded"
         />
         <select
