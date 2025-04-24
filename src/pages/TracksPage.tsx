@@ -180,58 +180,71 @@ const TracksPage: React.FC = () => {
   const totalPages = Math.ceil(filteredTracks.length / ITEMS_PER_PAGE);
 
   const getCoverImageUrl = (coverImage: string) => {
-    if (!coverImage) return "default-cover.jpg"; // или путь к дефолтной картинке
+    if (!coverImage) return "default-cover.jpg";
     return coverImage.startsWith("http") ? coverImage : `${import.meta.env.VITE_API_URL}/${coverImage}`;
   };
 
   return (
     <div className="p-6 space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 data-testid="tracks-header" className="text-2xl font-bold">Tracks</h1>
-        <Button data-testid="create-track-button" className="create-btn" onClick={() => setCreateModalOpen(true)}> + </Button>
-      </div>
-
-      <div className="flex gap-4 items-center">
-        <input
-          type="checkbox"
-          checked={paginatedTracks.every((t) => selectedTrackIds.includes(t.id))}
-          onChange={() =>
-            paginatedTracks.every((t) => selectedTrackIds.includes(t.id))
-              ? clearSelection()
-              : selectAllTracks()
-          }
-        />
-        <span>Select all on this page</span>
-        {selectedTrackIds.length > 0 && (
-          <Button variant="destructive" onClick={deleteSelectedTracks}>
-            Delete selected ({selectedTrackIds.length})
-          </Button>
-        )}
-      </div>
-
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search by artist, track or album"
-          value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
-        />
-        <select
-          value={selectedGenre}
-          onChange={(e) => setSelectedGenre(e.target.value)}
-          className="border p-2 rounded"
+    <div className="flex justify-between items-center">
+      <h1 data-testid="tracks-header" className="text-2xl font-bold">Tracks</h1>
+      <Button
+        data-testid="create-track-button"
+        className="create-btn"
+        onClick={() => setCreateModalOpen(true)}
+      >
+        +
+      </Button>
+    </div>
+  
+    <div className="flex gap-4 items-center">
+      <input
+        type="checkbox"
+        data-testid="select-all"
+        checked={paginatedTracks.every((t) => selectedTrackIds.includes(t.id))}
+        onChange={() =>
+          paginatedTracks.every((t) => selectedTrackIds.includes(t.id))
+            ? clearSelection()
+            : selectAllTracks()
+        }
+      />
+      <span>Select all on this page</span>
+      {selectedTrackIds.length > 0 && (
+        <Button
+          data-testid="bulk-delete-button"
+          variant="destructive"
+          onClick={deleteSelectedTracks}
         >
-          <option value="">All genres</option>
-          {Array.from(new Set(tracks.flatMap((t) => t.genres || []))).map((genre) => (
-            <option key={genre}>{genre}</option>
-          ))}
-        </select>
-      </div>
-
-      <ul>
-        {paginatedTracks.map((track) => (
-          <li key={track.id} className="track-card">
-            <div className="track-top">
+          Delete selected ({selectedTrackIds.length})
+        </Button>
+      )}
+    </div>
+  
+    <div className="search-bar flex gap-2 items-center">
+      <input
+        data-testid="search-input"
+        type="text"
+        placeholder="Search by artist, track or album"
+        value={searchQuery}
+        onChange={(e) => handleSearchChange(e.target.value)}
+      />
+      <select
+        data-testid="filter-genre"
+        value={selectedGenre}
+        onChange={(e) => setSelectedGenre(e.target.value)}
+        className="border p-2 rounded"
+      >
+        <option value="">All genres</option>
+        {Array.from(new Set(tracks.flatMap((t) => t.genres || []))).map((genre) => (
+          <option key={genre}>{genre}</option>
+        ))}
+      </select>
+    </div>
+  
+    <ul>
+      {paginatedTracks.map((track) => (
+        <li key={track.id} className="track-card" data-testid={`track-item-${track.id}`}>
+          <div className="track-top">
             <div className="track-info">
               {track.coverImage && (
                 <img
@@ -239,16 +252,34 @@ const TracksPage: React.FC = () => {
                   alt={`${track.title} cover`}
                   className="cover-image"
                 />
-              )} </div>
-              <div className="track-details">
-              <div className="track-title">{track.title}</div>
-              <div className="track-artist">{track.artist}</div>
+              )}
+            </div>
+            <div className="track-details">
+              <div data-testid={`track-item-${track.id}-title`} className="track-title">
+                {track.title}
+              </div>
+              <div data-testid={`track-item-${track.id}-artist`} className="track-artist">
+                {track.artist}
+              </div>
               <div className="track-album">{track.album}</div>
+  
               {track.audioFile ? (
-                <div className="custom-audio-player" data-id={track.id}>
-                  <button className="play-pause" onClick={() => handlePlay(track.id)}>▶</button>
-                  <div className="progress-bar">
-                    <div className="progress"></div>
+                <div
+                  className="custom-audio-player"
+                  data-testid={`audio-player-${track.id}`}
+                >
+                  <button
+                    className="play-pause"
+                    data-testid={`play-button-${track.id}`}
+                    onClick={() => handlePlay(track.id)}
+                  >
+                    ▶
+                  </button>
+                  <div
+                    className="progress-bar"
+                    data-testid={`audio-progress-${track.id}`}
+                  >
+                    <div className="progress" />
                   </div>
                   <span className="time">00:00</span>
                   <audio
@@ -258,7 +289,12 @@ const TracksPage: React.FC = () => {
                     onPlay={() => handlePlay(track.id)}
                     src={`${import.meta.env.VITE_API_URL}/uploads/${track.audioFile}`}
                   />
-                  <button onClick={() => handleDeleteFile(track.id)}>🗑 Delete the file</button>
+                  <button
+                    onClick={() => handleDeleteFile(track.id)}
+                    title="Delete audio file"
+                  >
+                    🗑
+                  </button>
                 </div>
               ) : (
                 <>
@@ -269,13 +305,18 @@ const TracksPage: React.FC = () => {
                       handleFileChange(track.id, e.target.files ? e.target.files[0] : null)
                     }
                   />
-                  <button onClick={() => handleUpload(track.id)}>Upload file</button>
+                  <button
+                    data-testid={`upload-track-${track.id}`}
+                    onClick={() => handleUpload(track.id)}
+                  >
+                    Upload file
+                  </button>
                 </>
               )}
-              </div>  
-              </div>
-      
-            <div className="track-actions">
+            </div>
+          </div>
+  
+          <div className="track-actions">
               <button onClick={() => {
                 setCurrentTrack(track);
                 setEditModalOpen(true);
@@ -285,18 +326,28 @@ const TracksPage: React.FC = () => {
               <button onClick={() => handleDeleteTrack(track.id)}>🗑 Delete track</button>
             </div>
           </li>
-        ))}
-      </ul>
-
-      <div className="pagination">
-        <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
-          ← Prev
-        </button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
-          Next →
-        </button>
-      </div>
+      ))}
+    </ul>
+  
+    <div className="pagination flex gap-2 items-center" data-testid="pagination">
+      <button
+        data-testid="pagination-prev"
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage((p) => p - 1)}
+      >
+        ← Prev
+      </button>
+      <span>Page {currentPage} of {totalPages}</span>
+      <button
+        data-testid="pagination-next"
+        disabled={currentPage === totalPages}
+        onClick={() => setCurrentPage((p) => p + 1)}
+      >
+        Next →
+      </button>
+    </div>
+  
+  
 
       {isCreateModalOpen && (
         <CreateTrackModal

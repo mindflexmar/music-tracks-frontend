@@ -81,84 +81,95 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({ onClose, track, onUpdat
 
   return (
     <Modal onClose={onClose}>
-      <h2 className="text-xl font-bold mb-4">Edit track</h2>
+    <h2 data-testid="edit-track-modal-header" className="text-xl font-bold mb-4">Edit track</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        <div>
-          <input
-            {...register("title")}
-            placeholder="Track name"
-            className="w-full border p-2 rounded"
-          />
-          {errors.title && <p className="text-red-600">{errors.title.message}</p>}
-        </div>
-
-        <div>
-          <input
-            {...register("artist")}
-            placeholder="Artist"
-            className="w-full border p-2 rounded"
-          />
-          {errors.artist && <p className="text-red-600">{errors.artist.message}</p>}
-        </div>
-
-        <input {...register("album")} placeholder="Album" className="w-full border p-2 rounded" />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-3" data-testid="track-form">
+      <div>
         <input
-          {...register("coverImage")}
-          placeholder="Cover link (URL)"
+          {...register("title")}
+          placeholder="Track name"
           className="w-full border p-2 rounded"
+          data-testid="input-title"
         />
-        {errors.coverImage && <p className="text-red-600">{errors.coverImage.message}</p>}
+        {errors.title && <p data-testid="error-title" className="text-red-600">{errors.title.message}</p>}
+      </div>
 
-        <div>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {selectedGenres.map((name) => (
-              <span
-                key={name}
-                className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center gap-1"
+      <div>
+        <input
+          {...register("artist")}
+          placeholder="Artist"
+          className="w-full border p-2 rounded"
+          data-testid="input-artist"
+        />
+        {errors.artist && <p data-testid="error-artist" className="text-red-600">{errors.artist.message}</p>}
+      </div>
+
+      <input
+        {...register("album")}
+        placeholder="Album"
+        className="w-full border p-2 rounded"
+        data-testid="input-album"
+      />
+      <input
+        {...register("coverImage")}
+        placeholder="Cover link (URL)"
+        className="w-full border p-2 rounded"
+        data-testid="input-cover-image"
+      />
+      {errors.coverImage && <p data-testid="error-coverImage" className="text-red-600">{errors.coverImage.message}</p>}
+
+      <div>
+        <div className="flex flex-wrap gap-2 mb-2" data-testid="selected-genres">
+          {selectedGenres.map((name) => (
+            <span
+              key={name}
+              className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center gap-1"
+            >
+              {name}
+              <button
+                type="button"
+                onClick={() => handleRemoveGenre({ name })}
+                className="text-red-500 font-bold"
+                data-testid={`remove-genre-${name}`}
               >
-                {name}
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+
+        <details className="mb-2" data-testid="genre-dropdown">
+          <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 mb-1">
+            + Add genre
+          </summary>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {genres
+              .filter((g) => !selectedGenres.includes(g.name))
+              .map((genre) => (
                 <button
                   type="button"
-                  onClick={() => handleRemoveGenre({ name })}
-                  className="text-red-500 font-bold"
+                  key={genre.name}
+                  onClick={() => handleAddGenre(genre)}
+                  className="border border-gray-300 px-3 py-1 rounded-full text-sm hover:bg-gray-100"
+                  data-testid={`add-genre-${genre.name}`}
                 >
-                  ×
+                  {genre.name}
                 </button>
-              </span>
-            ))}
+              ))}
           </div>
+        </details>
+      </div>
 
-          <details className="mb-2">
-            <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800 mb-1">
-              + Add genre
-            </summary>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {genres
-                .filter((g) => !selectedGenres.includes(g.name))
-                .map((genre) => (
-                  <button
-                    type="button"
-                    key={genre.name}
-                    onClick={() => handleAddGenre(genre)}
-                    className="border border-gray-300 px-3 py-1 rounded-full text-sm hover:bg-gray-100"
-                  >
-                    {genre.name}
-                  </button>
-                ))}
-            </div>
-          </details>
-        </div>
-
-        <button
-          type="submit"
-          className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-        >
-          Update
-        </button>
-      </form>
-    </Modal>
-  );
+      <button
+        type="submit"
+        className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+        data-testid="submit-button"
+      >
+        Update
+      </button>
+    </form>
+  </Modal>
+);
 };
 
 export default EditTrackModal;

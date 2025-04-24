@@ -1,28 +1,171 @@
 .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 50;
-  }
-  
-  .modal-content {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    max-width: 500px;
-    width: 100%;
-    position: relative;
-  }
-  
-  .modal-close {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-  }
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+}
+
+.modal-content {
+  background: linear-gradient(to right, #581845, #900C3F, #C70039, #FF5733, #FFC300); /* Градиентный фон, как на странице */
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  font-size: 1.5rem;
+  color: white;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-content h2 {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  outline: none;
+  box-sizing: border-box;
+  transition: background 0.2s ease;
+}
+
+.modal-content input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.modal-content input:focus {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.modal-content .text-red-600 {
+  color: #FF5733; 
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.modal-content .flex.flex-wrap.gap-2.mb-2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal-content .bg-blue-100.text-blue-800 {
+  background: rgba(255, 255, 255, 0.2); 
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.modal-content .text-red-500 {
+  color: #FF5733; 
+  font-weight: bold;
+}
+
+.modal-content details summary {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.modal-content details summary:hover {
+  color: white;
+}
+
+.modal-content details .mt-1.flex.flex-wrap.gap-2 {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.modal-content details button {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.modal-content details button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-content .bg-blue-600.text-white {
+  background: #C70039; 
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+}
+
+.modal-content .bg-blue-600.text-white:hover {
+  background: #900C3F; 
+}
+
+.modal-content .bg-green-600.text-white {
+  background: #FF5733;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s ease;
+}
+
+.modal-content .bg-green-600.text-white:hover {
+  background: #C70039; 
+}
