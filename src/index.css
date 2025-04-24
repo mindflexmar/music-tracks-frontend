@@ -36,6 +36,26 @@ h1 {
   color: rgba(255, 255, 255, 0.7);
 }
 
+.search-bar select {
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-bar select:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.search-bar select option {
+  background: #581845; 
+  color: white;
+}
+
 .track-card {
   background-color: rgba(255, 255, 255, 0.08);
   border-radius: 10px;
@@ -91,7 +111,7 @@ h1 {
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s;
-  width: 100%; 
+  width: 150px;
   box-sizing: border-box; 
   text-align: center; 
 }
@@ -222,6 +242,22 @@ audio {
   }
 }
 
+.custom-audio-player button[title="Delete audio file"] {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 6px;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
 .custom-audio-player {
   display: flex;
   align-items: center;
@@ -230,7 +266,7 @@ audio {
   border-radius: 10px;
   padding: 8px 12px;
   width: 100%;
-  max-width: 400px; /* Увеличиваем ширину блока аудио */
+  max-width: 400px;
   box-sizing: border-box;
 }
 
@@ -270,4 +306,19 @@ audio {
   min-width: 50px;
   text-align: right;
   flex-shrink: 0;
+}
+
+button[data-testid="bulk-delete-button"] {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 6px 12px;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 1rem;
+}
+
+button[data-testid="bulk-delete-button"]:hover {
+  background: rgba(255, 255, 255, 0.3);
 }

@@ -305,7 +305,7 @@ const TracksPage: React.FC = () => {
                       handleFileChange(track.id, e.target.files ? e.target.files[0] : null)
                     }
                   />
-                  <button
+                  <button 
                     data-testid={`upload-track-${track.id}`}
                     onClick={() => handleUpload(track.id)}
                   >
