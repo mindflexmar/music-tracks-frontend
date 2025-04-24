@@ -231,14 +231,16 @@ const TracksPage: React.FC = () => {
       <ul>
         {paginatedTracks.map((track) => (
           <li key={track.id} className="track-card">
+            <div className="track-top">
             <div className="track-info">
               {track.coverImage && (
                 <img
                   src={getCoverImageUrl(track.coverImage)}
                   alt={`${track.title} cover`}
-                  className="w-16 h-16 object-cover rounded"
+                  className="cover-image"
                 />
-              )}
+              )} </div>
+              <div className="track-details">
               <div className="track-title">{track.title}</div>
               <div className="track-artist">{track.artist}</div>
               <div className="track-album">{track.album}</div>
@@ -270,7 +272,9 @@ const TracksPage: React.FC = () => {
                   <button onClick={() => handleUpload(track.id)}>Upload file</button>
                 </>
               )}
-            </div>
+              </div>  
+              </div>
+      
             <div className="track-actions">
               <button onClick={() => {
                 setCurrentTrack(track);

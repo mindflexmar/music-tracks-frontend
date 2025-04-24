@@ -39,11 +39,13 @@ h1 {
 .track-card {
   background-color: rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  padding: 15px;
+  padding: 20px;
   margin-bottom: 20px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 30px;
+  align-items: flex-start;
+  position: relative;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: background 0.3s ease;
 }
@@ -56,6 +58,7 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 200px;
 }
 
 .track-title {
@@ -70,8 +73,12 @@ h1 {
 }
 
 .track-actions {
+  top: 10px;
   display: flex;
   gap: 10px;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-bottom: 15px;
 }
 
 .track-actions button {
@@ -86,6 +93,13 @@ h1 {
 
 .track-actions button:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+.track-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1; 
 }
 
 .pagination {
@@ -140,6 +154,9 @@ ul {
   padding: 0;
   margin: 0 auto;
   max-width: 800px;
+  display: flex; 
+  flex-direction: column;
+  align-items: center;
 }
 
 
@@ -169,6 +186,19 @@ audio {
   width: 100%;
 }
 
+
+.track-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cover-image {
+  width: 170px;
+  height: 170px;
+  object-fit: cover;
+  border-radius: 10px;
+}
 
 @media (max-width: 768px) {
   .track-card {
