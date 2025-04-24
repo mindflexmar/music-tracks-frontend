@@ -10,6 +10,7 @@ import {
   deleteTrack,
 } from "../api/tracks";
 import debounce from "lodash.debounce";
+import "../index.css";
 
 const ITEMS_PER_PAGE = 5;
 const DEBOUNCE_DELAY = 300;
@@ -178,11 +179,16 @@ const TracksPage: React.FC = () => {
 
   const totalPages = Math.ceil(filteredTracks.length / ITEMS_PER_PAGE);
 
+  const getCoverImageUrl = (coverImage: string) => {
+    if (!coverImage) return "default-cover.jpg"; // или путь к дефолтной картинке
+    return coverImage.startsWith("http") ? coverImage : `${import.meta.env.VITE_API_URL}/${coverImage}`;
+  };
+
   return (
     <div className="p-6 space-y-4">
       <div className="flex justify-between items-center">
         <h1 data-testid="tracks-header" className="text-2xl font-bold">Tracks</h1>
-        <Button data-testid="create-track-button" onClick={() => setCreateModalOpen(true)}>Create a track</Button>
+        <Button data-testid="create-track-button" className="create-btn" onClick={() => setCreateModalOpen(true)}> + </Button>
       </div>
 
       <div className="flex gap-4 items-center">
@@ -203,13 +209,12 @@ const TracksPage: React.FC = () => {
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="search-bar">
         <input
           type="text"
           placeholder="Search by artist, track or album"
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="border p-2 rounded"
         />
         <select
           value={selectedGenre}
@@ -223,64 +228,70 @@ const TracksPage: React.FC = () => {
         </select>
       </div>
 
-      <ul className="space-y-4">
+      <ul>
         {paginatedTracks.map((track) => (
-          <li key={track.id} className="p-4 rounded shadow bg-white space-y-2">
-            <div className="font-semibold">{track.title}</div>
-            <div className="text-sm text-gray-600">{track.artist}</div>
-            <div className="text-sm text-gray-500">{track.album}</div>
-
-            {track.audioFile ? (
-              <div className="space-y-2">
-                <audio
-                  controls
-                  ref={(el) => {
-                    audioRefs.current[track.id] = el;
-                  }}
-                  onPlay={() => handlePlay(track.id)}
-                  src={`${import.meta.env.VITE_API_URL}/${track.audioFile}`}
-                  className="w-full"
+          <li key={track.id} className="track-card">
+            <div className="track-info">
+              {track.coverImage && (
+                <img
+                  src={getCoverImageUrl(track.coverImage)}
+                  alt={`${track.title} cover`}
+                  className="w-16 h-16 object-cover rounded"
                 />
-                <Button variant="destructive" onClick={() => handleDeleteFile(track.id)}>
-                  🗑 Delete the file
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept=".mp3,.wav"
-                  onChange={(e) =>
-                    handleFileChange(track.id, e.target.files ? e.target.files[0] : null)
-                  }
-                />
-                <Button onClick={() => handleUpload(track.id)}>Upload file</Button>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button onClick={() => {
+              )}
+              <div className="track-title">{track.title}</div>
+              <div className="track-artist">{track.artist}</div>
+              <div className="track-album">{track.album}</div>
+              {track.audioFile ? (
+                <div className="custom-audio-player" data-id={track.id}>
+                  <button className="play-pause" onClick={() => handlePlay(track.id)}>▶</button>
+                  <div className="progress-bar">
+                    <div className="progress"></div>
+                  </div>
+                  <span className="time">00:00</span>
+                  <audio
+                    ref={(el) => {
+                      audioRefs.current[track.id] = el;
+                    }}
+                    onPlay={() => handlePlay(track.id)}
+                    src={`${import.meta.env.VITE_API_URL}/uploads/${track.audioFile}`}
+                  />
+                  <button onClick={() => handleDeleteFile(track.id)}>🗑 Delete the file</button>
+                </div>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    accept=".mp3,.wav"
+                    onChange={(e) =>
+                      handleFileChange(track.id, e.target.files ? e.target.files[0] : null)
+                    }
+                  />
+                  <button onClick={() => handleUpload(track.id)}>Upload file</button>
+                </>
+              )}
+            </div>
+            <div className="track-actions">
+              <button onClick={() => {
                 setCurrentTrack(track);
                 setEditModalOpen(true);
               }}>
                 Edit
-              </Button>
-              <Button variant="destructive" onClick={() => handleDeleteTrack(track.id)}>
-                🗑 Delete track
-              </Button>
+              </button>
+              <button onClick={() => handleDeleteTrack(track.id)}>🗑 Delete track</button>
             </div>
           </li>
         ))}
       </ul>
 
-      <div className="flex justify-between items-center">
-        <Button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+      <div className="pagination">
+        <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
           ← Prev
-        </Button>
+        </button>
         <span>Page {currentPage} of {totalPages}</span>
-        <Button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+        <button disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
           Next →
-        </Button>
+        </button>
       </div>
 
       {isCreateModalOpen && (

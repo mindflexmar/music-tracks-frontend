@@ -7,7 +7,7 @@ export interface Genre {
     title: string;
     artist: string;
     album?: string;
-    coverUrl?: string;
+    coverImage?: string
     genres: string[];
     audioFile?: string; 
   }

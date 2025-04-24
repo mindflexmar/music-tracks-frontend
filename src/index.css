@@ -1,69 +1,231 @@
-
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #581845, #900C3F, #C70039, #FF5733, #FFC300);
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+.search-bar {
+  max-width: 600px;
+  margin: 0 auto 30px;
+  display: flex;
+  gap: 10px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  outline: none;
+}
+
+.search-bar input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.track-card {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease;
+}
+
+.track-card:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.track-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.track-artist,
+.track-album {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.track-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.track-actions button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 6px 10px;
+  color: white;
+  border-radius: 6px;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: background 0.2s;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.track-actions button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.pagination button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  margin: 0 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.pagination button:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.pagination .active {
+  background: white;
+  color: #581845;
+  font-weight: bold;
+}
+
+.create-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  color: #581845;
+  border: none;
+  border-radius: 50%;
+  font-size: 30px;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: background 0.3s ease;
+}
+
+.create-btn:hover {
+  background: #f0f0f0;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  max-width: 800px;
+}
+
+
+.track-info input[type="file"] {
+  margin-top: 10px;
+  color: white;
+}
+
+.track-info button {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.track-info button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+
+audio {
+  margin-top: 10px;
+  width: 100%;
+}
+
+
+@media (max-width: 768px) {
+  .track-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
   }
-  a:hover {
-    color: #747bff;
+
+  .track-actions {
+    width: 100%;
+    justify-content: space-between;
   }
-  button {
-    background-color: #f9f9f9;
+
+  .search-bar {
+    flex-direction: column;
   }
+}
+
+.custom-audio-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 12px;
+  width: 100%;
+}
+
+.custom-audio-player .play-pause {
+  background: none;
+  border: 2px solid white;
+  color: white;
+  font-size: 20px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+}
+
+.progress-bar {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.2);
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar .progress {
+  background: #FFC300;
+  height: 100%;
+  width: 0;
+  transition: width 0.3s;
+}
+
+.custom-audio-player .time {
+  font-size: 0.85rem;
+  color: #fff;
+  min-width: 50px;
 }

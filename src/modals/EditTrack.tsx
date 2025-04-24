@@ -1,7 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../modals/Modal";
 import { Track, Genre } from "../types";
 import { getGenres } from "../api/tracks";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface EditTrackModalProps {
   onClose: () => void;
@@ -9,74 +12,70 @@ interface EditTrackModalProps {
   onUpdated: (updatedTrack: Track) => void;
 }
 
-const EditTrackModal: React.FC<EditTrackModalProps> = ({
-  onClose,
-  track,
-  onUpdated,
-}) => {
-  const titleRef = useRef<HTMLInputElement>(null);
-  const artistRef = useRef<HTMLInputElement>(null);
-  const albumRef = useRef<HTMLInputElement>(null);
-  const coverUrlRef = useRef<HTMLInputElement>(null);
+const trackSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  artist: z.string().min(1, "Artist is required"),
+  album: z.string().optional(),
+  coverImage: z.string().url("Invalid URL").optional().or(z.literal("")),
+  genres: z.array(z.string()).optional(),
+});
 
+type TrackFormData = z.infer<typeof trackSchema>;
+
+const EditTrackModal: React.FC<EditTrackModalProps> = ({ onClose, track, onUpdated }) => {
   const [genres, setGenres] = useState<Genre[]>([]);
-  const [selectedGenres, setSelectedGenres] = useState<Genre[]>([]);
-  const [error, setError] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<TrackFormData>({
+    resolver: zodResolver(trackSchema),
+    defaultValues: {
+      title: track.title,
+      artist: track.artist,
+      album: track.album || "",
+      coverImage: track.coverImage || "",
+      genres: track.genres || [],
+    },
+  });
+
+  const selectedGenres = watch("genres") ?? [];
 
   useEffect(() => {
-    setSelectedGenres(track.genres.map((name: string) => ({ name })));
-
     getGenres()
-      .then((names: string[]) => setGenres(names.map((name) => ({ name }))))
+      .then((names) => setGenres(names.map((name) => ({ name }))))
       .catch(() => setGenres([]));
-
-    if (titleRef.current) titleRef.current.value = track.title;
-    if (artistRef.current) artistRef.current.value = track.artist;
-    if (albumRef.current) albumRef.current.value = track.album || "";
-    if (coverUrlRef.current) coverUrlRef.current.value = track.coverUrl || "";
-  }, [track]);
+  }, []);
 
   const handleAddGenre = (genre: Genre) => {
-    if (!selectedGenres.find((g) => g.name === genre.name)) {
-      setSelectedGenres([...selectedGenres, genre]);
+    if (!selectedGenres.includes(genre.name)) {
+      setValue("genres", [...selectedGenres, genre.name]);
     }
   };
 
   const handleRemoveGenre = (genre: Genre) => {
-    setSelectedGenres(selectedGenres.filter((g) => g.name !== genre.name));
+    setValue("genres", selectedGenres.filter((name) => name !== genre.name));
   };
 
-  const handleUpdate = async () => {
-    const title = titleRef.current?.value.trim() || "";
-    const artist = artistRef.current?.value.trim() || "";
-    const album = albumRef.current?.value || "";
-    const coverUrl = coverUrlRef.current?.value || "";
-
-    if (!title || !artist) {
-      setError("Title and artist are required fields.");
-      return;
-    }
-
+  const onSubmit = async (data: TrackFormData) => {
     try {
       const res = await fetch(`http://localhost:8000/api/tracks/${track.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          artist,
-          album,
-          coverUrl,
-          genres: selectedGenres.map((g) => g.name),
-        }),
+        body: JSON.stringify(data),
       });
 
-      if (!res.ok) throw new Error("Failed to update track.");
+      if (!res.ok) throw new Error("Failed to update track");
 
       const updatedTrack = await res.json();
       onUpdated(updatedTrack);
       onClose();
     } catch (err: any) {
-      setError(err.message || "An error occurred. Please try again.");
+      console.error(err);
+      alert(err.message || "An error occurred. Please try again.");
     }
   };
 
@@ -84,23 +83,46 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
     <Modal onClose={onClose}>
       <h2 className="text-xl font-bold mb-4">Edit track</h2>
 
-      {error && <p className="text-red-600 mb-2">{error}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+        <div>
+          <input
+            {...register("title")}
+            placeholder="Track name"
+            className="w-full border p-2 rounded"
+          />
+          {errors.title && <p className="text-red-600">{errors.title.message}</p>}
+        </div>
 
-      <div className="space-y-3">
-        <input ref={titleRef} className="w-full border p-2 rounded" placeholder="Track name" />
-        <input ref={artistRef} className="w-full border p-2 rounded" placeholder="Artist" />
-        <input ref={albumRef} className="w-full border p-2 rounded" placeholder="Album" />
-        <input ref={coverUrlRef} className="w-full border p-2 rounded" placeholder="Cover link (URL)" />
+        <div>
+          <input
+            {...register("artist")}
+            placeholder="Artist"
+            className="w-full border p-2 rounded"
+          />
+          {errors.artist && <p className="text-red-600">{errors.artist.message}</p>}
+        </div>
+
+        <input {...register("album")} placeholder="Album" className="w-full border p-2 rounded" />
+        <input
+          {...register("coverImage")}
+          placeholder="Cover link (URL)"
+          className="w-full border p-2 rounded"
+        />
+        {errors.coverImage && <p className="text-red-600">{errors.coverImage.message}</p>}
 
         <div>
           <div className="flex flex-wrap gap-2 mb-2">
-            {selectedGenres.map((genre) => (
+            {selectedGenres.map((name) => (
               <span
-                key={genre.name}
+                key={name}
                 className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full flex items-center gap-1"
               >
-                {genre.name}
-                <button onClick={() => handleRemoveGenre(genre)} className="text-red-500 font-bold">
+                {name}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveGenre({ name })}
+                  className="text-red-500 font-bold"
+                >
                   ×
                 </button>
               </span>
@@ -113,9 +135,10 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
             </summary>
             <div className="mt-1 flex flex-wrap gap-2">
               {genres
-                .filter((g) => !selectedGenres.some((s) => s.name === g.name))
+                .filter((g) => !selectedGenres.includes(g.name))
                 .map((genre) => (
                   <button
+                    type="button"
                     key={genre.name}
                     onClick={() => handleAddGenre(genre)}
                     className="border border-gray-300 px-3 py-1 rounded-full text-sm hover:bg-gray-100"
@@ -128,12 +151,12 @@ const EditTrackModal: React.FC<EditTrackModalProps> = ({
         </div>
 
         <button
+          type="submit"
           className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-          onClick={handleUpdate}
         >
           Update
         </button>
-      </div>
+      </form>
     </Modal>
   );
 };
